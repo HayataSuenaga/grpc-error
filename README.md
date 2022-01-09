@@ -13,10 +13,27 @@ The problems are reported at https://github.com/firebase/firebase-js-sdk/issues/
 
 ## How to run
 
-### `npm run`
+### `npm test`
 
 This executes the following script:
 
 > firebase emulators:exec 'jest --env=node'
 
 The above script starts Firestore emulator at port `8080`.
+
+## `rules.test.js`
+
+This test file contains two test cases, both of which should pass. One uses `assertFails` and the other `assertSucceeds`.
+It uses version 9 JavaScript SDK.
+
+## Console output
+
+![Console output screen shot!](./console_output.png)
+
+## Environment
+
+- macOS Big Sur: v11.5.1
+- node: v.14.17.0
+- @firebase/rules-unit-testing: v2.0.1
+- firebase v9.6.2
+- jest: v27.4.7
