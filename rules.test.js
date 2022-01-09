@@ -2,25 +2,42 @@ const { readFileSync } = require('fs');
 const {
   assertFails,
   assertSucceeds,
-  initializeTestEnvironment,
-  RulesTestEnvironment,
+  initializeTestEnvironment
 } = require('@firebase/rules-unit-testing');
 const { doc, setDoc } = require('firebase/firestore');
 
-test('Security rule should deny write to any document', async () => {
+describe('Security rules', () => {
+  let testEnv;
+  let db;
 
-  const testEnv = await initializeTestEnvironment({
-    projectId: 'grpc-error',
-    firestore: {
-      host: 'localhost',
-      port: 8080,
-      rules: readFileSync('firestore.rules', 'utf8'),
-    },
+  test('should deny writes to unauthorized collections', async () => {
+    const docRef = doc(db, 'privateCollection/privateDoc');
+    await assertFails(setDoc(docRef, { comment: 'I should be denied' }));
   });
 
-  const bob = testEnv.authenticatedContext('bob', { email: 'bob@example.com' });
-  const db = bob.firestore();
-  const docRef = doc(db, 'users/bob');
+  test('should allow writes to public collections', async () => {
+    const docRef = doc(db, 'publicCollection/publicDoc');
+    await assertSucceeds(setDoc(docRef, { comment: 'I should be allowed' }));
+  });
 
-  await assertFails(setDoc(docRef, { comment: 'Hello world' }));
+  beforeAll(async () => {
+    testEnv = await initializeTestEnvironment({
+      projectId: 'grpc-error',
+      firestore: {
+        host: 'localhost',
+        port: 8080,
+        rules: readFileSync('firestore.rules', 'utf8'),
+      },
+    });
+
+    db = testEnv.unauthenticatedContext().firestore();
+  });
+
+  afterEach(async () => {
+    await testEnv.clearFirestore();
+  });
+
+  afterAll(async () => {
+    await testEnv.cleanup();
+  });
 });
